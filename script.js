@@ -1,4 +1,21 @@
-document.getElementById('formulario').addEventListener('submit'),(event) => {
+const firebaseConfig = {
+    apiKey: "AIzaSyARIyqxCe-FjLsysN6UBdd0GssrI5CIEu8",
+    authDomain: "datos-de-formulario-95cf9.firebaseapp.com",
+    projectId: "datos-de-formulario-95cf9",
+    storageBucket: "datos-de-formulario-95cf9.firebasestorage.app",
+    messagingSenderId: "433439016656",
+    appId: "1:433439016656:web:b6045d4797db67834140d5",
+    measurementId: "G-X5NJMR0SPT"
+  };
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+
+
+// Initialize Cloud Firestore and get a reference to the service
+const db = firebase.firestore();
+
+document.getElementById('formulario').addEventListener('submit',(event) => {
     event.preventDefault();
 
     // validar campo nombre
@@ -27,8 +44,10 @@ document.getElementById('formulario').addEventListener('submit'),(event) => {
     // validar la contraseña
     let contrasenaEntrada = document.getElementById('password');
     let contrasenaError = document.getElementById('passwordError');
-    if(contrasenaEntrada.value.lenght < 8 ){
-        contrasenaError.textContent = 'La contraseña debe tener al menos 8 caracteres';
+    let contrasenaPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&#.$($)$-$_])[A-Za-z\d$@$!%*?&#.$($)$-$_]{8,15}$/;
+    if(!contrasenaPattern.test(contrasenaEntrada.value)){
+        contrasenaError.textContent = 'La contraseña debe tener al menos 8 caracteres, numeros, mayusculas y minusculas, y caracteres\
+        especiales';
         contrasenaError.classList.add('error-message');
     }else{
         contrasenaError.textContent = '';
@@ -38,7 +57,18 @@ document.getElementById('formulario').addEventListener('submit'),(event) => {
     // Si todos los campos son validos, enviar el formulario
     if(!errorNombre.textContent && !emailError.textContent && !contrasenaError.textContent){
         // BACKEND que reciba la informacion
-        alert('El formulario se ha enviado con exito')
-        document.getElementById('formulario').reset() 
+
+        db.collection("users").add({
+            nombre: entradaNombre.value,
+            email: emailEntrada.value,
+            password: contrasenaEntrada.value,
+        })
+        .then((docRef) => {
+            alert('El formulario se ha enviado con exito', docRef.id);
+            document.getElementById('formulario').reset() 
+        })
+        .catch((error) => {
+            alert(error);
+        });
     }
-}
+})
